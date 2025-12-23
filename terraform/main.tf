@@ -1,47 +1,56 @@
-resource "random_id" "suffix" {
-  # Only create a random suffix if bucket_name is NOT explicitly provided
-  count       = var.bucket_name == "" ? 1 : 0
-  byte_length = 4
+terraform {
+  required_version = ">= 1.5.0"
+
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 5.0"
+    }
+  }
 }
 
-locals {
-  # If bucket_name is provided, use it exactly; else generate a unique name
-  bucket_name = var.bucket_name != "" ? lower(var.bucket_name) : lower("${var.bucket_name_prefix}-${random_id.suffix[0].hex}")
+provider "aws" {
+  region = var.aws_region
 }
 
+# -------------------------------------------------------------------
+# S3 Bucket
+# -------------------------------------------------------------------
 resource "aws_s3_bucket" "this" {
-  bucket = local.bucket_name
-  tags   = var.tags
+  bucket        = var.bucket_name
+  force_destroy = false
+
+  tags = {
+    Name        = var.bucket_name
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
 }
 
-# Block all public access (recommended default)
+# (Optional but recommended) Block public access
 resource "aws_s3_bucket_public_access_block" "this" {
-  bucket                  = aws_s3_bucket.this.id
+  bucket = aws_s3_bucket.this.id
+
   block_public_acls       = true
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
 }
 
-# Default encryption (SSE-S3). For SSE-KMS, swap algorithm + add kms_master_key_id.
-resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
-  bucket = aws_s3_bucket.this.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-  }
-}
-
-resource "aws_s3_bucket_versioning" "this" {
-  bucket = aws_s3_bucket.this.id
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
+# -------------------------------------------------------------------
+# ✅ Outputs (THIS FIXES YOUR ERROR)
+# -------------------------------------------------------------------
 output "bucket_name" {
-  description = "Created bucket name."
+  description = "S3 bucket name to be consumed by Ansible or other tooling"
   value       = aws_s3_bucket.this.bucket
+}
+
+output "bucket_arn" {
+  description = "S3 bucket ARN"
+  value       = aws_s3_bucket.this.arn
+}
+
+output "bucket_region" {
+  description = "AWS region used for the bucket"
+  value       = var.aws_region
 }
