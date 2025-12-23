@@ -1,39 +1,36 @@
-
 variable "aws_region" {
-  description = "AWS region to deploy into."
+  description = "AWS region where resources will be created (ex: us-east-1)"
   type        = string
   default     = "us-east-1"
 }
 
 variable "bucket_name" {
-  description = "Optional full S3 bucket name. If empty, bucket_name_prefix + random suffix is used."
+  description = "Globally-unique S3 bucket name (lowercase recommended). Example: openshift-backup-data"
   type        = string
-  default     = ""
 
   validation {
-    condition = (
-      var.bucket_name == "" ||
-      (
-        length(var.bucket_name) >= 3 &&
-        length(var.bucket_name) <= 63 &&
-        can(regex("^[a-z0-9][a-z0-9.-]*[a-z0-9]$", var.bucket_name))
-      )
-    )
-    error_message = "bucket_name must be 3-63 chars, lowercase letters, numbers, dots or hyphens."
+    condition     = length(var.bucket_name) >= 3 && length(var.bucket_name) <= 63
+    error_message = "bucket_name must be between 3 and 63 characters."
+  }
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9.-]*[a-z0-9]$", var.bucket_name))
+    error_message = "bucket_name must start/end with a letter or number and contain only lowercase letters, numbers, dots, or hyphens."
+  }
+
+  validation {
+    condition     = !can(regex("\\.\\.", var.bucket_name))
+    error_message = "bucket_name cannot contain consecutive periods (..)."
+  }
+
+  validation {
+    condition     = !can(regex("^-|-$", var.bucket_name))
+    error_message = "bucket_name cannot start or end with a hyphen."
   }
 }
 
-variable "bucket_name_prefix" {
-  description = "Prefix used when bucket_name is empty."
+variable "environment" {
+  description = "Environment tag (dev/test/prod)"
   type        = string
-  default     = "demo-seed-bucket"
-}
-
-variable "tags" {
-  description = "Tags to apply to the bucket."
-  type        = map(string)
-  default = {
-    Project = "terraform-s3-with-ansible-seed"
-    Owner   = "example"
-  }
+  default     = "dev"
 }
