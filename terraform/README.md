@@ -1,24 +1,10 @@
-# Terraform: S3 bucket (baseline)
 
-## Prereqs
-- Terraform >= 1.5
-- AWS credentials configured (one of):
-  - env vars: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, optionally `AWS_SESSION_TOKEN`
-  - or `~/.aws/credentials`
+# Terraform – S3 Bucket
 
-## Deploy
-```bash
-cd terraform
+## Example
 terraform init
-terraform apply
-```
-
-Terraform will output the created bucket name:
-```bash
-terraform output -raw bucket_name
-```
+terraform plan  -var "bucket_name=my-custom-bucket"
+terraform apply -var "bucket_name=my-custom-bucket"
 
 ## Destroy
-```bash
 terraform destroy
-```

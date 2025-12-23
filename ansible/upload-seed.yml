@@ -1,36 +1,26 @@
+
 ---
-- name: Upload a seed file to the Terraform-created S3 bucket
+- name: Upload seed file to Terraform-created S3 bucket
   hosts: localhost
   gather_facts: false
 
   vars:
-    # You can override these:
     tf_dir: "../terraform"
     object_key: "seed/seed.txt"
     seed_file: "files/seed.txt"
 
   tasks:
-    - name: Read bucket name from Terraform output
+    - name: Get bucket name from Terraform output
       ansible.builtin.command: terraform output -raw bucket_name
       args:
         chdir: "{{ tf_dir }}"
       register: tf_bucket
       changed_when: false
+      failed_when: tf_bucket.rc != 0 or tf_bucket.stdout | trim == ""
 
-    - name: Set bucket_name fact
-      ansible.builtin.set_fact:
-        bucket_name: "{{ tf_bucket.stdout | trim }}"
-
-    - name: Upload seed object to S3
+    - name: Upload seed file
       amazon.aws.s3_object:
-        bucket: "{{ bucket_name }}"
+        bucket: "{{ tf_bucket.stdout | trim }}"
         object: "{{ object_key }}"
         src: "{{ seed_file }}"
         mode: put
-      register: upload_result
-
-    - name: Show result
-      ansible.builtin.debug:
-        msg:
-          - "Uploaded {{ seed_file }} to s3://{{ bucket_name }}/{{ object_key }}"
-          - "ETag: {{ upload_result.etag | default('n/a') }}"
