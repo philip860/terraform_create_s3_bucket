@@ -27,7 +27,9 @@ resource "aws_s3_bucket" "this" {
   }
 }
 
-# (Optional but recommended) Block public access
+# -------------------------------------------------------------------
+# (Recommended) Block all public access
+# -------------------------------------------------------------------
 resource "aws_s3_bucket_public_access_block" "this" {
   bucket = aws_s3_bucket.this.id
 
@@ -38,7 +40,7 @@ resource "aws_s3_bucket_public_access_block" "this" {
 }
 
 # -------------------------------------------------------------------
-# ✅ Outputs (THIS FIXES YOUR ERROR)
+# Outputs (keep in main.tf - do NOT create outputs.tf)
 # -------------------------------------------------------------------
 output "bucket_name" {
   description = "S3 bucket name to be consumed by Ansible or other tooling"
