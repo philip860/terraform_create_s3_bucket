@@ -1,29 +1,24 @@
-# Terraform: S3 bucket (baseline) — v2 (custom bucket_name supported)
+# Terraform + Ansible demo: S3 bucket + seed upload
 
-## How bucket naming works
-- If you set `bucket_name`, Terraform uses that exact name (must be globally unique).
-- If `bucket_name` is empty, Terraform generates: `<bucket_name_prefix>-<random_suffix>`
+This sample project shows a simple, scalable pattern:
+1) **Terraform** provisions an S3 bucket with safe defaults.
+2) **Ansible** uploads a seed object into that bucket after provisioning.
 
-## Dry-run / check (no changes)
+## Quickstart
 ```bash
+# 1) Terraform: create the bucket
 cd terraform
 terraform init
-terraform plan
-```
-
-## Deploy (generated name)
-```bash
 terraform apply
-terraform output -raw bucket_name
+
+# 2) Ansible: upload seed file into the created bucket
+cd ../ansible
+ansible-galaxy collection install -r requirements.yml
+ansible-playbook upload-seed.yml
 ```
 
-## Deploy (custom name)
+## Cleanup
 ```bash
-terraform apply -var "bucket_name=my-custom-bucket-name"
-terraform output -raw bucket_name
-```
-
-## Destroy
-```bash
+cd terraform
 terraform destroy
 ```

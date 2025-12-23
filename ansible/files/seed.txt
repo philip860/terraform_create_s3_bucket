@@ -1,0 +1,3 @@
+Hello from Ansible 👋
+
+This is a seed file uploaded after Terraform provisions the bucket.
